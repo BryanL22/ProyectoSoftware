@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CRUD de Productos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; color: #222; }
+        h1 { font-size: 1.5rem; }
+        form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .5rem; margin-bottom: 1.5rem; }
+        input, button { padding: .5rem; font-size: .95rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
+        th { background: #eee; }
+        #mensaje { margin: .5rem 0; color: #a00; }
+    </style>
+</head>
+<body>
+<h1>CRUD de Productos</h1>
+<p>Documentación de la API: <a href="/swagger-ui.html">Swagger UI</a></p>
+
+<form id="formulario">
+    <input type="hidden" id="id">
+    <input id="nombre" placeholder="Nombre" required>
+    <input id="descripcion" placeholder="Descripción">
+    <input id="categoria" placeholder="Categoría">
+    <input id="precio" type="number" step="0.01" min="0" placeholder="Precio" required>
+    <input id="stock" type="number" min="0" placeholder="Stock" required>
+    <button type="submit">Guardar</button>
+</form>
+<div id="mensaje"></div>
+
+<table>
+    <thead>
+    <tr><th>Id</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+</table>
+
+<script>
+    const API = '/api/v1/productos';
+    const campos = ['nombre', 'descripcion', 'categoria', 'precio', 'stock'];
+    const $ = id => document.getElementById(id);
+
+    async function cargar() {
+        const respuesta = await fetch(API);
+        const productos = await respuesta.json();
+        $('tabla').innerHTML = '';
+        productos.forEach(p => {
+            const fila = document.createElement('tr');
+            [p.id, p.nombre, p.categoria ?? '', p.precio, p.stock].forEach(v => {
+                const celda = document.createElement('td');
+                celda.textContent = v;
+                fila.appendChild(celda);
+            });
+            const acciones = document.createElement('td');
+            const editar = document.createElement('button');
+            editar.textContent = 'Editar';
+            editar.onclick = () => { $('id').value = p.id; campos.forEach(c => $(c).value = p[c] ?? ''); };
+            const borrar = document.createElement('button');
+            borrar.textContent = 'Eliminar';
+            borrar.onclick = async () => { await fetch(`${API}/${p.id}`, { method: 'DELETE' }); cargar(); };
+            acciones.append(editar, borrar);
+            fila.appendChild(acciones);
+            $('tabla').appendChild(fila);
+        });
+    }
+
+    $('formulario').addEventListener('submit', async e => {
+        e.preventDefault();
+        const datos = Object.fromEntries(campos.map(c => [c, $(c).value]));
+        datos.precio = Number(datos.precio);
+        datos.stock = Number(datos.stock);
+        const id = $('id').value;
+        const respuesta = await fetch(id ? `${API}/${id}` : API, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+        if (respuesta.ok) {
+            $('mensaje').textContent = '';
+            $('formulario').reset();
+            $('id').value = '';
+            cargar();
+        } else {
+            const error = await respuesta.json();
+            $('mensaje').textContent = error.detail ?? 'No se pudo guardar el producto';
+        }
+    });
+
+    cargar();
+</script>
+</body>
+</html>
