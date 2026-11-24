@@ -8,9 +8,12 @@ import co.edu.poligran.crudproductos.mapper.ProductoMapper;
 import co.edu.poligran.crudproductos.model.Producto;
 import co.edu.poligran.crudproductos.repository.ProductoRepository;
 import co.edu.poligran.crudproductos.service.ProductoService;
+import co.edu.poligran.crudproductos.service.ordenamiento.EstrategiaOrdenamiento;
+import co.edu.poligran.crudproductos.service.ordenamiento.SelectorOrdenamiento;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,16 +22,25 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
     private final ProductoMapper productoMapper;
+    private final SelectorOrdenamiento selectorOrdenamiento;
 
-    public ProductoServiceImpl(ProductoRepository productoRepository, ProductoMapper productoMapper) {
+    public ProductoServiceImpl(ProductoRepository productoRepository, ProductoMapper productoMapper,
+                               SelectorOrdenamiento selectorOrdenamiento) {
         this.productoRepository = productoRepository;
         this.productoMapper = productoMapper;
+        this.selectorOrdenamiento = selectorOrdenamiento;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductoResponse> listar() {
+    public List<ProductoResponse> listar(String orden, boolean descendente) {
+        EstrategiaOrdenamiento estrategia = selectorOrdenamiento.obtener(orden);
+        Comparator<Producto> comparador = estrategia.comparador();
+        if (descendente) {
+            comparador = comparador.reversed();
+        }
         return productoRepository.findAll().stream()
+                .sorted(comparador)
                 .map(productoMapper::aRespuesta)
                 .toList();
     }

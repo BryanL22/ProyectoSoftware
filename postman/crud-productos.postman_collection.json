@@ -44,6 +44,81 @@
       ]
     },
     {
+      "name": "Crear segundo producto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Mouse inalámbrico\",\n  \"descripcion\": \"Mouse óptico de 1600 dpi\",\n  \"categoria\": \"Accesorios\",\n  \"precio\": 40000,\n  \"stock\": 30\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/productos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"El segundo producto se crea con estado 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.collectionVariables.set(\"segundoId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear producto duplicado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Mouse inalámbrico\",\n  \"descripcion\": \"Mouse óptico de 1600 dpi\",\n  \"categoria\": \"Accesorios\",\n  \"precio\": 40000,\n  \"stock\": 30\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/productos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 409 por nombre repetido\", function () { pm.response.to.have.status(409); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Listar productos",
       "request": {
         "method": "GET",
@@ -68,6 +143,123 @@
               "    pm.response.to.have.status(200);",
               "    pm.expect(pm.response.json()).to.be.an(\"array\");",
               "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar ordenado por precio descendente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/productos?orden=precio&direccion=desc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos"
+          ],
+          "query": [
+            {
+              "key": "orden",
+              "value": "precio"
+            },
+            {
+              "key": "direccion",
+              "value": "desc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Los precios quedan de mayor a menor\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const precios = pm.response.json().map(p => Number(p.precio));",
+              "    const ordenados = [...precios].sort((a, b) => b - a);",
+              "    pm.expect(precios).to.eql(ordenados);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar ordenado por nombre",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/productos?orden=nombre&direccion=asc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos"
+          ],
+          "query": [
+            {
+              "key": "orden",
+              "value": "nombre"
+            },
+            {
+              "key": "direccion",
+              "value": "asc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Los nombres quedan en orden alfabético\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const nombres = pm.response.json().map(p => p.nombre.toLowerCase());",
+              "    const ordenados = [...nombres].sort((a, b) => a.localeCompare(b));",
+              "    pm.expect(nombres).to.eql(ordenados);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar con criterio inválido",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/productos?orden=color",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos"
+          ],
+          "query": [
+            {
+              "key": "orden",
+              "value": "color"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 400 por criterio de orden inválido\", function () { pm.response.to.have.status(400); });"
             ]
           }
         }
@@ -232,11 +424,43 @@
           }
         }
       ]
+    },
+    {
+      "name": "Eliminar segundo producto",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/productos/{{segundoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "productos",
+            "{{segundoId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 204\", function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
     }
   ],
   "variable": [
     {
       "key": "productoId",
+      "value": ""
+    },
+    {
+      "key": "segundoId",
       "value": ""
     }
   ]

@@ -7,7 +7,13 @@ import java.util.List;
 
 public interface ProductoService {
 
-    List<ProductoResponse> listar();
+    /**
+     * Lista los productos ordenados según el criterio indicado.
+     *
+     * @param orden       clave de la estrategia: id, nombre, precio o stock
+     * @param descendente true para invertir el orden
+     */
+    List<ProductoResponse> listar(String orden, boolean descendente);
 
     ProductoResponse buscarPorId(Long id);
 

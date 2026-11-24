@@ -28,6 +28,7 @@ src/main/java/co/edu/poligran/crudproductos/
 ├── model/         Entidad Producto
 ├── repository/    Capa de persistencia (Spring Data JPA)
 └── service/       Capa de negocio
+    └── ordenamiento/  Estrategias de orden (patrón Strategy)
 ```
 
 ## Cómo ejecutarlo
@@ -50,15 +51,24 @@ Para detenerla: `docker compose down`.
 
 | Método | Ruta | Acción |
 |---|---|---|
-| GET | /api/v1/productos | Lista todos los productos |
+| GET | /api/v1/productos?orden=precio&direccion=desc | Lista los productos ordenados (orden: id, nombre, precio o stock; direccion: asc o desc) |
 | GET | /api/v1/productos/{id} | Consulta un producto |
 | POST | /api/v1/productos | Crea un producto |
 | PUT | /api/v1/productos/{id} | Actualiza un producto |
 | DELETE | /api/v1/productos/{id} | Elimina un producto |
 
-## Pruebas con Postman
+## Patrón de diseño: Strategy
 
-Importar los archivos de la carpeta `postman/` y ejecutar la colección con el entorno `local`.
+El listado de productos se puede ordenar por id, nombre, precio o stock. Cada criterio es una clase que implementa `EstrategiaOrdenamiento` y `SelectorOrdenamiento` elige la estrategia según el parámetro `orden` de la petición. Para agregar un criterio nuevo basta con crear otra clase anotada con `@Component`; el servicio y el controlador no cambian.
+
+## Diagramas
+
+Los diagramas de clases y de arquitectura están en `docs/diagramas/`.
+
+## Pruebas
+
+- Pruebas unitarias: `./mvnw test`
+- Pruebas de la API con Postman: importar los archivos de la carpeta `postman/` y ejecutar la colección con el entorno `local`.
 
 ## Análisis con SonarQube
 

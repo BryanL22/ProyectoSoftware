@@ -4,6 +4,7 @@ import co.edu.poligran.crudproductos.dto.ProductoRequest;
 import co.edu.poligran.crudproductos.dto.ProductoResponse;
 import co.edu.poligran.crudproductos.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -32,9 +34,13 @@ public class ProductoController {
     }
 
     @GetMapping
-    @Operation(summary = "Lista todos los productos")
-    public List<ProductoResponse> listar() {
-        return productoService.listar();
+    @Operation(summary = "Lista todos los productos, ordenados por el criterio indicado")
+    public List<ProductoResponse> listar(
+            @Parameter(description = "Criterio de orden: id, nombre, precio o stock")
+            @RequestParam(defaultValue = "id") String orden,
+            @Parameter(description = "Dirección del orden: asc o desc")
+            @RequestParam(defaultValue = "asc") String direccion) {
+        return productoService.listar(orden, "desc".equalsIgnoreCase(direccion));
     }
 
     @GetMapping("/{id}")
