@@ -4,6 +4,8 @@ Aplicación web CRUD para la entidad **Producto**, construida con arquitectura e
 
 **Integrantes:** Brayan Lopez, Santiago Caballero y Felipe Torres.
 
+**Video de la arquitectura y el funcionamiento:** https://youtu.be/6ypilFEHCm4
+
 ## Tecnologías
 
 | Herramienta | Uso |
